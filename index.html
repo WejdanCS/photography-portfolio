@@ -9,9 +9,9 @@
 
 </head>
 <body>
-    <header class="container">
-        <a href="#hero">Alex Morgan — Photography</a>
-        <nav aria-label="Main navigation">
+    <header class="container site-header">
+        <a class="site-brand" href="#hero">Alex Morgan — Photography</a>
+        <nav class="site-nav" aria-label="Main navigation">
             <a href="#hero">Home</a>
             <a href="#work">Selected Work</a>
             <a href="#about">About</a>
@@ -24,8 +24,10 @@
             <p>Portrait · Lifestyle · Travel</p>
             <h1 id="hero-heading">Photography that tells a story</h1>
             <p>Honest portraits, quiet places, and the beauty of everyday moments, captured in natural light.</p>
-            <a href="#work">View Work</a>
-            <a href="#contact">Book a Shoot</a>
+            <div class="button-group">
+                <a class="button button--secondary" href="#work">View Work</a>
+                <a class="button button--primary" href="#contact">Book a Shoot</a>
+            </div>
             <figure>
                 <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" alt="A wooden cabin beside a still lake surrounded by mountains" width="1200" height="800" fetchpriority="high">
                 <figcaption>A moment of stillness.</figcaption>
@@ -82,7 +84,7 @@
                 </p>
                 <p><label for="month">Preferred month (optional)</label><br><input type="month" id="month" name="month"></p>
                 <p><label for="message">Tell me about your project</label><br><textarea id="message" name="message" rows="5" required></textarea></p>
-                <button type="submit" disabled>Send Inquiry</button>
+                <button class="button button--primary" type="submit" disabled>Send Inquiry</button>
             </form>
         </section>
     </main>

@@ -1,0 +1,39 @@
+.site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s) var(--space-m);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.site-brand {
+    min-width: 0;
+    padding-block: var(--space-xs);
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    text-decoration: none;
+}
+
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs) var(--space-m);
+    min-width: 0;
+}
+
+.site-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: var(--space-xs);
+    text-decoration: none;
+}
+
+.site-brand:hover,
+.site-nav a:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 0.3em;
+}
