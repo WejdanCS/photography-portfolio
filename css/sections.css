@@ -151,6 +151,59 @@
     text-decoration-thickness: 2px;
 }
 
+.contact > p {
+    max-width: 60ch;
+}
+
+.contact-note {
+    padding-left: var(--space-s);
+    border-left: 2px solid var(--color-accent);
+    font-size: 0.875rem;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    width: 100%;
+    max-width: 40rem;
+    margin-top: var(--space-l);
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+}
+
+.form-field label {
+    font-weight: 500;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: var(--space-s);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+.form-field textarea {
+    min-height: 10rem;
+    resize: vertical;
+}
+
+.contact-form .button {
+    align-self: flex-start;
+}
+
 @media (min-width: 768px) {
     .about {
         grid-template-columns: 1fr 1fr;
