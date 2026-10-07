@@ -1,0 +1,11 @@
+:root {
+    --space-xs: 8px;
+    --space-s: 16px;
+    --space-m: 24px;
+    --space-l: 48px;
+    --space-xl: 80px;
+
+    --container-max-width: 1200px;
+    --page-gutter: clamp(var(--space-s), 4vw, var(--space-l));
+    --section-spacing: clamp(var(--space-l), 7vw, var(--space-xl));
+}

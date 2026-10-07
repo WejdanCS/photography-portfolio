@@ -1,0 +1,77 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+}
+
+.container {
+    width: calc(100% - var(--page-gutter) - var(--page-gutter));
+    max-width: var(--container-max-width);
+    margin-inline: auto;
+}
+
+header,
+footer {
+    padding-block: var(--space-m);
+}
+
+main > section {
+    padding-block: var(--section-spacing);
+}
+
+h1,
+h2,
+h3 {
+    margin: 0 0 var(--space-m);
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+h1 {
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+}
+
+h2 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+}
+
+h3 {
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+}
+
+p {
+    margin: 0 0 var(--space-s);
+}
+
+a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+}
+
+figure {
+    margin: 0;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+figcaption {
+    margin-block-start: var(--space-xs);
+    color: var(--color-text-secondary);
+}
+
+figcaption h3 {
+    color: var(--color-text-primary);
+}
