@@ -3,10 +3,14 @@
 :root {
     --font-heading: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', Arial, sans-serif;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
 }
 
 body {
     font-family: var(--font-body);
+    font-weight: var(--font-weight-regular);
 }
 
 h1,

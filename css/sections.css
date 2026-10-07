@@ -178,7 +178,7 @@
 }
 
 .form-field label {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .form-field input,
@@ -259,7 +259,6 @@
 
 @media (min-width: 1024px) {
     .hero {
-        /* grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); */
         grid-template-columns: 1fr 1.2fr;
         gap: clamp(var(--space-l), 5vw, var(--space-xl));
     }
