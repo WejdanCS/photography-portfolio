@@ -37,3 +37,54 @@
     text-decoration-color: var(--color-accent);
     text-underline-offset: 0.3em;
 }
+
+.hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-l);
+}
+
+.hero-content,
+.hero-image {
+    min-width: 0;
+}
+
+.hero-label {
+    margin-bottom: var(--space-m);
+    font-size: 0.875rem;
+}
+
+.hero h1 {
+    max-width: 12ch;
+    text-wrap: balance;
+}
+
+.hero-description {
+    max-width: 42ch;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+}
+
+.hero .button-group {
+    margin-top: var(--space-m);
+    margin-bottom: 0;
+}
+
+.hero-image img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+}
+
+.hero-image figcaption {
+    font-size: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+    .hero {
+        /* grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); */
+        grid-template-columns: 1fr 1.2fr;
+        gap: clamp(var(--space-l), 5vw, var(--space-xl));
+    }
+}
