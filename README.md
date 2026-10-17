@@ -39,7 +39,9 @@ Photography Portfolio/
 │   ├── main.jsx        # React entry point and Tailwind CSS import
 │   ├── App.jsx         # Page composition and main landmark
 │   ├── styles.js       # Shared container and button utility strings
-│   └── components/     # Header, Hero, SelectedWork, About, Contact, Footer
+│   ├── components/     # Header, Hero, SelectedWork, About, Contact, Footer
+│   └── data/
+│       └── photos.js   # Gallery items as an array of objects
 ├── package.json
 ├── package-lock.json
 ├── vite.config.js
@@ -78,7 +80,7 @@ The form is a **visual preview only**. It has no submission endpoint, and the Se
 
 | Change | File |
 | --- | --- |
-| Gallery photos, titles, categories, alt text and portrait/landscape classes | `src/components/SelectedWork.jsx` |
+| Gallery photos, titles, categories, alt text and portrait/landscape classes | `src/data/photos.js` |
 | Hero headline, introduction and featured image | `src/components/Hero.jsx` |
 | Photographer biography and image | `src/components/About.jsx` |
 | Navigation and footer content | `src/components/Header.jsx`, `src/components/Footer.jsx` |
@@ -87,7 +89,7 @@ The form is a **visual preview only**. It has no submission endpoint, and the Se
 | Shared button and container utilities | `src/styles.js` |
 | Base typography, keyboard focus and Preflight adjustments | `css/base.css` |
 
-Gallery entries are currently authored directly in JSX; there is no separate gallery data file or API. Preserve image `alt`, dimensions, lazy loading and aspect-ratio classes when editing. The Hero image retains `fetchPriority="high"`.
+Gallery entries are hardcoded as an array of objects in `src/data/photos.js` and rendered by `SelectedWork` with `.map()` using each stable `id` as the React key. Preserve image `alt`, dimensions and aspect-ratio classes when editing. Gallery images remain lazy-loaded by the component, while the Hero image retains `fetchPriority="high"`.
 
 The form is deliberately not connected to a service. Its disabled button and `onSubmit` cancellation must remain while it is a preview.
 
