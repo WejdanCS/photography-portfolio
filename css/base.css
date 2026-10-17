@@ -76,11 +76,6 @@
   button, input:where([type="button"], [type="reset"], [type="submit"]) { appearance: auto; }
   img { vertical-align: baseline; }
   select { white-space: pre; }
-  /* Restore native option and month-input metrics changed by Preflight. */
+  /* Keep native option spacing while retaining Preflight's iOS date-field fixes. */
   option { padding: revert; }
-  ::-webkit-datetime-edit { display: revert; padding-block: revert; }
-  ::-webkit-datetime-edit-fields-wrapper { padding: revert; }
-  ::-webkit-datetime-edit-year-field,
-  ::-webkit-datetime-edit-month-field { padding-block: revert; }
-  ::-webkit-calendar-picker-indicator { line-height: revert; }
 }

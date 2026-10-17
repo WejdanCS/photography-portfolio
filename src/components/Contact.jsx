@@ -1,5 +1,7 @@
 import { primaryButton } from '../styles.js';
 
+const singleLineFieldClass = 'h-[3.75rem] w-full min-w-0 max-w-full border border-border rounded-none bg-background p-s text-text-primary leading-[1.5]';
+
 export default function Contact() {
   return (
     <section id="contact" className="scroll-mt-[14rem] py-(--section-spacing) md:scroll-mt-[7rem]" aria-labelledby="contact-heading">
@@ -9,15 +11,15 @@ export default function Contact() {
         <form onSubmit={(event) => event.preventDefault()} className="mt-l flex w-full max-w-[40rem] flex-col gap-m" aria-describedby="form-note">
             <div className="flex min-w-0 flex-col gap-xs">
                 <label className="font-medium" htmlFor="name">Name</label>
-                <input className="w-full min-w-0 min-h-target border border-border rounded-none bg-background text-text-primary p-s leading-[1.5]" type="text" id="name" name="name" autoComplete="name" required />
+                <input className={singleLineFieldClass} type="text" id="name" name="name" autoComplete="name" required />
             </div>
             <div className="flex min-w-0 flex-col gap-xs">
                 <label className="font-medium" htmlFor="email">Email</label>
-                <input className="w-full min-w-0 min-h-target border border-border rounded-none bg-background text-text-primary p-s leading-[1.5]" type="email" id="email" name="email" autoComplete="email" required />
+                <input className={singleLineFieldClass} type="email" id="email" name="email" autoComplete="email" required />
             </div>
             <div className="flex min-w-0 flex-col gap-xs">
                 <label className="font-medium" htmlFor="session">Photography / Session type</label>
-                <select className="w-full min-w-0 min-h-target border border-border rounded-none bg-background text-text-primary p-s leading-[1.5]" id="session" name="session" required>
+                <select className={singleLineFieldClass} id="session" name="session" required>
                     <option value="">Choose a session type</option>
                     <option value="portrait">Portrait</option>
                     <option value="lifestyle">Lifestyle</option>
@@ -28,7 +30,7 @@ export default function Contact() {
             </div>
             <div className="flex min-w-0 flex-col gap-xs">
                 <label className="font-medium" htmlFor="month">Preferred month (optional)</label>
-                <input className="w-full min-w-0 min-h-target border border-border rounded-none bg-background text-text-primary p-s leading-[1.5]" type="month" id="month" name="month" />
+                <input className={singleLineFieldClass} type="month" id="month" name="month" />
             </div>
             <div className="flex min-w-0 flex-col gap-xs">
                 <label className="font-medium" htmlFor="message">Tell me about your project</label>
