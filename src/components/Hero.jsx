@@ -2,7 +2,7 @@ import { primaryButton, secondaryButton } from '../styles.js';
 
 export default function Hero() {
   return (
-    <section id="hero" className="grid grid-cols-1 items-center gap-l py-(--section-spacing) lg:grid-cols-[1fr_1.2fr] lg:gap-(--hero-gap)" aria-labelledby="hero-heading">
+    <section id="hero" className="scroll-mt-[14rem] grid grid-cols-1 items-center gap-l py-(--section-spacing) md:scroll-mt-[7rem] lg:grid-cols-[1fr_1.2fr] lg:gap-(--hero-gap)" aria-labelledby="hero-heading">
         <div className="min-w-0">
             <p className="mb-m text-[0.875rem] uppercase tracking-label">Portrait · Lifestyle · Travel</p>
             <h1 className="max-w-[12ch] text-balance" id="hero-heading">Photography that tells a story</h1>

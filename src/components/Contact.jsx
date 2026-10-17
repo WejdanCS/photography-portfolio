@@ -2,7 +2,7 @@ import { primaryButton } from '../styles.js';
 
 export default function Contact() {
   return (
-    <section id="contact" className="py-(--section-spacing)" aria-labelledby="contact-heading">
+    <section id="contact" className="scroll-mt-[14rem] py-(--section-spacing) md:scroll-mt-[7rem]" aria-labelledby="contact-heading">
         <h2 id="contact-heading">Contact / Book a Shoot</h2>
         <p className="max-w-[60ch]">Have a portrait session, a creative project, or a place in mind? Tell me a little about your idea.</p>
         <p id="form-note" className="max-w-[60ch] border-l-2 border-l-accent pl-s text-[0.875rem]">This form is a preview. Booking requests are not sent yet.</p>

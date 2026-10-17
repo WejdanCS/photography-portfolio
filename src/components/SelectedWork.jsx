@@ -20,7 +20,7 @@ export default function SelectedWork() {
   }
 
   return (
-    <section className="py-(--section-spacing)" id="work" aria-labelledby="work-heading">
+    <section className="scroll-mt-[14rem] py-(--section-spacing) md:scroll-mt-[7rem]" id="work" aria-labelledby="work-heading">
         <h2 id="work-heading">Selected Work</h2>
         <p>A collection of people, landscapes, and spaces that invite a closer look.</p>
         <div className="mt-m flex flex-wrap gap-xs" role="group" aria-label="Filter selected work by category">
