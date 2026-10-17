@@ -37,7 +37,8 @@ Photography Portfolio/
 ├── index.html          # HTML metadata and React mount point
 ├── src/
 │   ├── main.jsx        # React entry point and original CSS import
-│   └── App.jsx         # Entire page in JSX (section extraction is a later step)
+│   ├── App.jsx         # Page composition and main landmark
+│   └── components/     # Header, Hero, SelectedWork, About, Contact, Footer
 ├── package.json
 ├── package-lock.json
 ├── vite.config.js
@@ -79,7 +80,7 @@ The form is a **visual preview only**. It has no submission endpoint, and the Se
 
 ## Customization
 
-Edit `src/App.jsx` to replace the sample identity, introduction, photo titles, images, and alternative text. Update the CSS variables to adjust the design consistently. Connect a submission service before enabling the contact form.
+Edit the relevant file in `src/components/` to replace the sample identity, introduction, photo titles, images, and alternative text. Update the CSS variables to adjust the design consistently. Connect a submission service before enabling the contact form.
 
 ## Image and font sources
 
@@ -90,4 +91,4 @@ This is an educational portfolio project. Local assignment and design documents 
 
 ## Migration status
 
-Stage 2 installs React/Vite and converts HTML attributes to JSX while preserving all original CSS files. Tailwind and section-component extraction have not started. The preview form stays disabled and its submit handler prevents navigation/submission. Original source and screenshots are retained locally under `reference/html-css-baseline-2026-10-17/`, excluded from Git and the production build.
+Stage 2 installs React/Vite and converts HTML attributes to JSX while preserving all original CSS files. Stage 3 extracts Header, Hero, SelectedWork, About, Contact and Footer into separate components, composed in that order by App. The four content sections remain direct children of main. Tailwind conversion has not started. The preview form stays disabled and its submit handler prevents navigation/submission. Original source and screenshots are retained locally under `reference/html-css-baseline-2026-10-17/`, excluded from Git and the production build.
