@@ -1,12 +1,42 @@
+import { useState } from 'react';
 import photos from '../data/photos.js';
 
+const categories = ['All', 'Portrait', 'Nature', 'Travel', 'Architecture'];
+
 export default function SelectedWork() {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const visiblePhotos = selectedCategory === 'All'
+    ? photos
+    : photos.filter((photo) => photo.category === selectedCategory);
+
   return (
     <section className="py-(--section-spacing)" id="work" aria-labelledby="work-heading">
         <h2 id="work-heading">Selected Work</h2>
         <p>A collection of people, landscapes, and spaces that invite a closer look.</p>
+        <div className="mt-m flex flex-wrap gap-xs" role="group" aria-label="Filter selected work by category">
+          {categories.map((category) => {
+            const isSelected = selectedCategory === category;
+
+            return (
+              <button
+                className={`min-h-target border px-s py-xs font-medium ${
+                  isSelected
+                    ? 'border-accent bg-accent text-background'
+                    : 'border-border bg-transparent text-text-primary hover:border-text-primary'
+                }`}
+                key={category}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </button>
+            );
+          })}
+        </div>
         <div className="mt-l grid grid-cols-[1fr] items-start gap-x-m gap-y-l md:grid-cols-[1fr_1fr]">
-            {photos.map((photo) => (
+            {visiblePhotos.map((photo) => (
               <figure className="min-w-0" key={photo.id}>
                 <img
                   className={`h-auto w-full ${photo.aspectClass} object-cover`}
