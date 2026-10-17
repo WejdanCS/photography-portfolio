@@ -1,6 +1,6 @@
 # Photography Portfolio
 
-A single-page photography portfolio for the fictional photographer **Alex Morgan**, built with plain HTML5 and CSS3. The design uses warm neutral colors, elegant typography, generous whitespace, and large photography.
+A single-page photography portfolio for the fictional photographer **Alex Morgan**, built with React and JavaScript using Vite, with the original CSS3 design preserved. The design uses warm neutral colors, elegant typography, generous whitespace, and large photography.
 
 ## Features
 
@@ -14,7 +14,18 @@ A single-page photography portfolio for the fictional photographer **Alex Morgan
 
 ## Getting started
 
-Open `index.html` in a web browser. No installation, build step, framework, or JavaScript is required.
+Requires Node.js 22.12+ and npm.
+
+```sh
+npm ci
+npm run dev
+```
+
+- `npm run build`: create the production site in `dist/`.
+- `npm run preview`: preview the production build locally.
+- `npm run lint`: check JavaScript and JSX with ESLint.
+
+Open the URL printed by Vite. The page now requires JavaScript; opening `index.html` directly is no longer the development workflow.
 
 
 An internet connection is needed to load Google Fonts and the remote Unsplash images. System font fallbacks are provided.
@@ -23,7 +34,14 @@ An internet connection is needed to load Google Fonts and the remote Unsplash im
 
 ```text
 Photography Portfolio/
-├── index.html          # Page content and semantic structure
+├── index.html          # HTML metadata and React mount point
+├── src/
+│   ├── main.jsx        # React entry point and original CSS import
+│   └── App.jsx         # Entire page in JSX (section extraction is a later step)
+├── package.json
+├── package-lock.json
+├── vite.config.js
+├── eslint.config.js
 ├── README.md
 └── css/
     ├── main.css        # Stylesheet entry point and imports
@@ -61,7 +79,7 @@ The form is a **visual preview only**. It has no submission endpoint, and the Se
 
 ## Customization
 
-Edit `index.html` to replace the sample identity, introduction, photo titles, images, and alternative text. Update the CSS variables to adjust the design consistently. Connect a submission service before enabling the contact form.
+Edit `src/App.jsx` to replace the sample identity, introduction, photo titles, images, and alternative text. Update the CSS variables to adjust the design consistently. Connect a submission service before enabling the contact form.
 
 ## Image and font sources
 
@@ -69,3 +87,7 @@ Edit `index.html` to replace the sample identity, introduction, photo titles, im
 - Playfair Display and Inter are loaded from [Google Fonts](https://fonts.google.com/).
 
 This is an educational portfolio project. Local assignment and design documents under `docs/` are excluded from Git by the current `.gitignore`.
+
+## Migration status
+
+Stage 2 installs React/Vite and converts HTML attributes to JSX while preserving all original CSS files. Tailwind and section-component extraction have not started. The preview form stays disabled and its submit handler prevents navigation/submission. Original source and screenshots are retained locally under `reference/html-css-baseline-2026-10-17/`, excluded from Git and the production build.
