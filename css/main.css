@@ -1,16 +1,39 @@
-/* ==========================================================================
-   Main Stylesheet - Photography Portfolio
-   Architecture: Tokens -> Base -> Components
-   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import 'tailwindcss' source('../src');
+@import './base.css';
 
-/* 1. Design Tokens */
-@import url('./colors.css');
-@import url('./fonts.css');
-@import url('./spacing.css');
+@theme {
+  --color-background: #F7F6F2;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #77736D;
+  --color-accent: #9A7B5B;
+  --color-border: #DEDAD3;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --spacing-xs: 8px;
+  --spacing-s: 16px;
+  --spacing-m: 24px;
+  --spacing-l: 48px;
+  --spacing-xl: 80px;
+  --spacing-target: 44px;
+  --container-page: 1200px;
+  --breakpoint-*: initial;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --text-h1: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  --text-h2: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  --text-h3: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  --text-intro: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --tracking-label: 0.1em;
+  --aspect-landscape: 3 / 2;
+  --aspect-portrait: 3 / 4;
+}
 
-/* 2. Base & Reset */
-@import url('./base.css');
-
-/* 3. Components */
-@import url('./buttons.css');
-@import url('./sections.css');
+:root {
+  --page-gutter: clamp(var(--spacing-s), 4vw, var(--spacing-l));
+  --section-spacing: clamp(var(--spacing-l), 7vw, var(--spacing-xl));
+  --hero-gap: clamp(var(--spacing-l), 5vw, var(--spacing-xl));
+}

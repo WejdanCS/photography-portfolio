@@ -1,3 +1,4 @@
+import { pageContainer } from './styles.js';
 import Header from './components/Header.jsx';
 import Hero from './components/Hero.jsx';
 import SelectedWork from './components/SelectedWork.jsx';
@@ -9,7 +10,7 @@ export default function App() {
   return (
     <>
       <Header />
-      <main className="container">
+      <main className={pageContainer}>
         <Hero />
         <SelectedWork />
         <About />
