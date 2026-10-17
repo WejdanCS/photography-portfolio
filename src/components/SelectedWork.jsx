@@ -1,14 +1,23 @@
 import { useState } from 'react';
 import photos from '../data/photos.js';
+import FavoriteToggle from './FavoriteToggle.jsx';
 
 const categories = ['All', 'Portrait', 'Nature', 'Travel', 'Architecture'];
 
 export default function SelectedWork() {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [favoritesById, setFavoritesById] = useState({});
 
   const visiblePhotos = selectedCategory === 'All'
     ? photos
     : photos.filter((photo) => photo.category === selectedCategory);
+
+  function updateFavorite(photoId, checked) {
+    setFavoritesById((currentFavorites) => ({
+      ...currentFavorites,
+      [photoId]: checked,
+    }));
+  }
 
   return (
     <section className="py-(--section-spacing)" id="work" aria-labelledby="work-heading">
@@ -46,9 +55,16 @@ export default function SelectedWork() {
                   height={photo.height}
                   loading="lazy"
                 />
-                <figcaption className="mt-s">
-                  <h3 className="mb-xs text-[1.5rem]">{photo.title}</h3>
-                  <p className="m-0 text-[0.875rem] uppercase tracking-label">{photo.category}</p>
+                <figcaption className="mt-s flex items-start justify-between gap-s">
+                  <div className="min-w-0">
+                    <h3 className="mb-xs text-[1.5rem]">{photo.title}</h3>
+                    <p className="m-0 text-[0.875rem] uppercase tracking-label">{photo.category}</p>
+                  </div>
+                  <FavoriteToggle
+                    checked={Boolean(favoritesById[photo.id])}
+                    label={photo.title}
+                    onChange={(checked) => updateFavorite(photo.id, checked)}
+                  />
                 </figcaption>
               </figure>
             ))}

@@ -8,6 +8,7 @@ A single-page photography portfolio for the fictional photographer **Alex Morgan
 - Hero with an introduction, featured image, and calls to action.
 - Selected Work gallery mixing portrait and landscape images.
 - Category filter for showing all work or one photography category at a time.
+- Controlled favorite toggle reused for every gallery item.
 - Short About section and a booking inquiry form preview.
 - Footer with a back-to-top link.
 - Responsive layouts using CSS Grid, Flexbox, and media queries.
@@ -40,7 +41,7 @@ Photography Portfolio/
 │   ├── main.jsx        # React entry point and Tailwind CSS import
 │   ├── App.jsx         # Page composition and main landmark
 │   ├── styles.js       # Shared container and button utility strings
-│   ├── components/     # Header, Hero, SelectedWork, About, Contact, Footer
+│   ├── components/     # Page sections and the reusable FavoriteToggle
 │   └── data/
 │       └── photos.js   # Gallery items as an array of objects
 ├── package.json
@@ -93,6 +94,8 @@ The form is a **visual preview only**. It has no submission endpoint, and the Se
 Gallery entries are hardcoded as an array of objects in `src/data/photos.js` and rendered by `SelectedWork` with `.map()` using each stable `id` as the React key. Preserve image `alt`, dimensions and aspect-ratio classes when editing. Gallery images remain lazy-loaded by the component, while the Hero image retains `fetchPriority="high"`.
 
 `SelectedWork` stores the active gallery category in `useState`. `All` is the initial value; the other filter buttons match the `category` values in `photos.js`. Each button exposes its selected state through `aria-pressed`.
+
+`SelectedWork` also owns a `favoritesById` state object keyed by each photo's stable `id`. Every `FavoriteToggle` is controlled: it receives `checked` and `onChange` from its parent and does not store its own state. Because the state lives above the filtered list, a photo remains favorited when it is hidden by one category and shown again later.
 
 The form is deliberately not connected to a service. Its disabled button and `onSubmit` cancellation must remain while it is a preview.
 
