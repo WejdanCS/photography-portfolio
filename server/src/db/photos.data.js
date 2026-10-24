@@ -1,0 +1,48 @@
+const photos = [
+  {
+    id: 'natural-light-portrait',
+    title: 'In Natural Light',
+    category: 'Portrait',
+    src: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&h=800&q=85',
+    alt: 'A man looking toward the camera in soft outdoor light',
+    width: 600,
+    height: 800,
+    aspectClass: 'aspect-portrait',
+    sortOrder: 0,
+  },
+  {
+    id: 'through-the-trees',
+    title: 'Through the Trees',
+    category: 'Nature',
+    src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&h=600&q=85',
+    alt: 'Sunlight filtering through tall trees in a green forest',
+    width: 900,
+    height: 600,
+    aspectClass: 'aspect-landscape',
+    sortOrder: 1,
+  },
+  {
+    id: 'quiet-horizons',
+    title: 'Quiet Horizons',
+    category: 'Travel',
+    src: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=900&h=600&q=85',
+    alt: 'An alpine lake beneath rugged mountains',
+    width: 900,
+    height: 600,
+    aspectClass: 'aspect-landscape',
+    sortOrder: 2,
+  },
+  {
+    id: 'lines-and-light',
+    title: 'Lines and Light',
+    category: 'Architecture',
+    src: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=600&h=800&q=85',
+    alt: 'Sculptural white architecture viewed against the sky',
+    width: 600,
+    height: 800,
+    aspectClass: 'aspect-portrait',
+    sortOrder: 3,
+  },
+];
+
+export default photos;
