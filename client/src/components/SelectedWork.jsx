@@ -1,12 +1,48 @@
-import { useState } from 'react';
-import photos from '../data/photos.js';
+import { useEffect, useState } from 'react';
 import FavoriteToggle from './FavoriteToggle.jsx';
+import { secondaryButton } from '../styles.js';
 
 const categories = ['All', 'Portrait', 'Nature', 'Travel', 'Architecture'];
+const galleryStatus = 'mt-l flex min-h-[16rem] flex-col items-center justify-center border-y border-border px-m py-l text-center';
 
 export default function SelectedWork() {
+  const [photos, setPhotos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [requestVersion, setRequestVersion] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [favoritesById, setFavoritesById] = useState({});
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadPhotos() {
+      try {
+        const response = await fetch('/api/photos', { signal: controller.signal });
+        if (!response.ok) throw new Error('Failed to fetch photos.');
+
+        const data = await response.json();
+        if (!Array.isArray(data.photos)) throw new Error('Invalid photos response.');
+
+        if (!controller.signal.aborted) setPhotos(data.photos);
+      } catch {
+        if (!controller.signal.aborted) {
+          setError('Unable to load photos. Please try again.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }
+
+    loadPhotos();
+    return () => controller.abort();
+  }, [requestVersion]);
+
+  function retryPhotos() {
+    setError('');
+    setIsLoading(true);
+    setRequestVersion((version) => version + 1);
+  }
 
   const visiblePhotos = selectedCategory === 'All'
     ? photos
@@ -44,7 +80,47 @@ export default function SelectedWork() {
             );
           })}
         </div>
-        <div className="mt-l grid grid-cols-[1fr] items-start gap-x-m gap-y-l md:grid-cols-[1fr_1fr]">
+        {isLoading && (
+          <div className={galleryStatus} role="status">
+            <span
+              className="mb-m h-m w-m rounded-full border-2 border-border border-t-accent motion-safe:animate-spin"
+              aria-hidden="true"
+            />
+            <p className="mb-xs text-[0.875rem] font-medium uppercase tracking-label text-accent">Loading collection</p>
+            <p className="m-0 text-text-secondary">The photographs will appear shortly.</p>
+          </div>
+        )}
+        {error && (
+          <div className={galleryStatus}>
+            <div role="alert">
+              <h3 className="mb-s">The collection is taking a moment</h3>
+              <p className="mb-m text-text-secondary">{error}</p>
+            </div>
+            <button
+              className={secondaryButton}
+              type="button"
+              onClick={retryPhotos}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+        {!isLoading && !error && visiblePhotos.length === 0 && (
+          <div className={galleryStatus} role="status">
+            <h3 className="mb-s">{photos.length === 0 ? 'A collection in the making' : 'More to discover'}</h3>
+            <p className="m-0 text-text-secondary">
+              {photos.length === 0
+                ? 'New photographs will be shared here soon.'
+                : 'No photographs in this category yet. Explore the rest of the collection.'}
+            </p>
+            {photos.length > 0 && (
+              <button className={`${secondaryButton} mt-m`} type="button" onClick={() => setSelectedCategory('All')}>
+                View all work
+              </button>
+            )}
+          </div>
+        )}
+        {!isLoading && !error && <div className="mt-l grid grid-cols-[1fr] items-start gap-x-m gap-y-l md:grid-cols-[1fr_1fr]">
             {visiblePhotos.map((photo) => (
               <figure className="min-w-0" key={photo.id}>
                 <img
@@ -68,7 +144,7 @@ export default function SelectedWork() {
                 </figcaption>
               </figure>
             ))}
-        </div>
+        </div>}
     </section>
   );
 }

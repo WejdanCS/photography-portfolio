@@ -20,6 +20,7 @@
   --spacing-xl: 80px;
   --spacing-target: 44px;
   --container-page: 1200px;
+  --container-auth: 36rem;
   --breakpoint-*: initial;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
