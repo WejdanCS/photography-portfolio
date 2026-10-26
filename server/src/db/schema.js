@@ -1,4 +1,5 @@
-import { boolean, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, check, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 // Better Auth manages users, credentials and persistent sessions.
 export const user = pgTable('user', {
@@ -61,3 +62,63 @@ export const photos = pgTable('photos', {
   aspectClass: text('aspect_class').notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
 });
+
+// Prices are stored in the currency's smallest unit (for example, USD cents).
+export const services = pgTable('services', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  unitAmount: integer('unit_amount').notNull(),
+  currency: text('currency').default('usd').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
+}, (table) => [
+  check('services_unit_amount_positive', sql`${table.unitAmount} > 0`),
+  check('services_currency_format', sql`${table.currency} ~ '^[a-z]{3}$'`),
+]);
+
+export const orderStatus = pgEnum('order_status', [
+  'pending',
+  'paid',
+  'checkout_failed',
+]);
+
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
+  status: orderStatus('status').default('pending').notNull(),
+  totalAmount: integer('total_amount').notNull(),
+  currency: text('currency').notNull(),
+  preferredMonth: text('preferred_month'),
+  projectMessage: text('project_message').notNull(),
+  stripeCheckoutSessionId: text('stripe_checkout_session_id'),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
+}, (table) => [
+  index('orders_user_id_idx').on(table.userId),
+  index('orders_status_idx').on(table.status),
+  uniqueIndex('orders_stripe_checkout_session_id_idx').on(table.stripeCheckoutSessionId),
+  uniqueIndex('orders_stripe_payment_intent_id_idx').on(table.stripePaymentIntentId),
+  check('orders_total_amount_positive', sql`${table.totalAmount} > 0`),
+  check('orders_currency_format', sql`${table.currency} ~ '^[a-z]{3}$'`),
+]);
+
+export const orderItems = pgTable('order_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  serviceId: text('service_id').notNull().references(() => services.id, { onDelete: 'restrict' }),
+  serviceName: text('service_name').notNull(),
+  unitAmount: integer('unit_amount').notNull(),
+  quantity: integer('quantity').default(1).notNull(),
+  lineTotal: integer('line_total').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('order_items_order_id_idx').on(table.orderId),
+  check('order_items_unit_amount_positive', sql`${table.unitAmount} > 0`),
+  check('order_items_quantity_positive', sql`${table.quantity} > 0`),
+  check('order_items_line_total_positive', sql`${table.lineTotal} > 0`),
+]);

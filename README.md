@@ -1,6 +1,6 @@
 # Photography Portfolio
 
-A photography portfolio for the fictional photographer **Alex Morgan**, built with React, Tailwind CSS and JavaScript. An Express API reads gallery data from PostgreSQL through Drizzle ORM. Better Auth manages signup, login and persistent sessions.
+A photography portfolio for the fictional photographer **Alex Morgan**, built with React, Tailwind CSS and JavaScript. An Express API reads gallery data from PostgreSQL through Drizzle ORM. Better Auth manages signup, login and persistent sessions. The server also contains the database and authentication foundation for Stripe test-mode session purchases; checkout routes and UI are not connected yet.
 
 ## Features
 
@@ -31,6 +31,8 @@ Photography Portfolio/
 │   ├── src/
 │   │   ├── index.js            # Express entry point and route mounting
 │   │   ├── auth.js             # Better Auth configuration
+│   │   ├── stripe.js           # Lazy Stripe test-mode configuration
+│   │   ├── middleware/         # Reusable authenticated-route guard
 │   │   ├── routes/photos.js    # Gallery API
 │   │   └── db/
 │   │       ├── index.js        # PostgreSQL connection and Drizzle instance
@@ -63,6 +65,10 @@ Edit `server/.env` with your own values:
 | `BETTER_AUTH_SECRET` | Auth signing secret | A random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Public auth server base URL | `http://localhost:3000` |
 | `CLIENT_URL` | Allowed frontend origin for CORS and auth | `http://localhost:5173` |
+| `STRIPE_SECRET_KEY` | Server-only Stripe test-mode secret | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret printed by Stripe CLI | `whsec_...` |
+| `CHECKOUT_SUCCESS_URL` | Frontend payment-success route | `http://localhost:5173/checkout/success` |
+| `CHECKOUT_CANCEL_URL` | Return location after cancelled checkout | `http://localhost:5173/#contact` |
 | `PORT` | Express listening port | `3000` |
 
 Generate a secret locally:
@@ -118,8 +124,13 @@ Vite forwards `/api/*` requests to `http://localhost:3000`. The frontend uses re
 | `account` | Auth provider details and password hash managed by Better Auth |
 | `session` | Unique session token, expiration, user reference and optional client metadata |
 | `verification` | Verification identifiers, values and expiration timestamps used by Better Auth |
+| `services` | Purchasable photography-session types and authoritative prices in cents |
+| `orders` | One authenticated user's purchase, payment state, booking details and Stripe references |
+| `order_items` | Immutable service-name and price snapshots for each order |
 
-Accounts and sessions reference users and are deleted when their user is deleted. Photos are public content independent of user accounts. There are no favorites or booking tables.
+Accounts and sessions reference users and are deleted when their user is deleted. Orders reference real users, and order items are deleted with their order. Photos are public content independent of user accounts. Favorites still remain client-side only.
+
+The service seed uses integer USD cents: Portrait `15000`, Lifestyle `17500`, Travel `25000`, Architecture `20000`, and Other `15000`. It inserts missing service IDs without overwriting or duplicating existing records.
 
 Edit `server/src/db/photos.data.js` for seed data. Existing database records need an explicit update because the seed skips duplicate IDs. The old `client/src/data/photos.js` file is no longer the gallery's data source.
 
@@ -135,6 +146,8 @@ Edit `server/src/db/photos.data.js` for seed data. Existing database records nee
 | `POST` | `/api/auth/sign-out` | Signs out the current session |
 
 Better Auth handles `/api/auth/*` before Express JSON parsing. The React client includes cookies with requests and shares session state between Login and Header. Sessions are stored in PostgreSQL, last seven days and have a one-day update interval. Signup automatically signs the user in. Passwords must contain 8–128 characters. Email verification, password reset and social login are not configured.
+
+`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. It is ready to protect the checkout and per-user order routes in the next implementation stage. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
 
 The gallery remains public. `SelectedWork` fetches photos, filters with `.filter()` and renders with `.map()` using stable IDs. It owns favorites state and passes `checked` and `onChange` to each controlled `FavoriteToggle`; updates use a functional state setter.
 
