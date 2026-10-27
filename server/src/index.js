@@ -6,6 +6,11 @@ import { sql } from 'drizzle-orm';
 import { auth } from './auth.js';
 import { db } from './db/index.js';
 import photosRouter from './routes/photos.js';
+import servicesRouter from './routes/services.js';
+import checkoutRouter from './routes/checkout.js';
+import ordersRouter from './routes/orders.js';
+import { requireAuth } from './middleware/require-auth.js';
+import { stripeWebhook } from './routes/stripe-webhook.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -23,8 +28,14 @@ app.use(cors({
 // Better Auth must receive the request body before express.json() parses it.
 app.all('/api/auth/*splat', toNodeHandler(auth));
 
+// Stripe signature verification requires the exact raw request body.
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/photos', photosRouter);
+app.use('/api/services', servicesRouter);
+app.use('/api/checkout', requireAuth, checkoutRouter);
+app.use('/api/orders', requireAuth, ordersRouter);
 
 app.get('/api/health', async (req, res) => {
   res.set('Cache-Control', 'no-store');

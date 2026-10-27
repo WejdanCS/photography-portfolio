@@ -139,17 +139,31 @@ Edit `server/src/db/photos.data.js` for seed data. Existing database records nee
 | Method | Endpoint | Behavior |
 | --- | --- | --- |
 | `GET` | `/api/photos` | Returns `{ "photos": [...] }` ordered by `sortOrder`, then ID; returns 500 on failure |
+| `GET` | `/api/services` | Returns active photography-session names and authoritative database prices |
 | `GET` | `/api/health` | Checks the database with `SELECT 1`; returns 200 when connected or 503 when unavailable |
 | `POST` | `/api/auth/sign-up/email` | Creates an account using name, email and password |
 | `POST` | `/api/auth/sign-in/email` | Signs in using email and password |
 | `GET` | `/api/auth/get-session` | Retrieves the current session |
 | `POST` | `/api/auth/sign-out` | Signs out the current session |
+| `POST` | `/api/checkout` | Requires login, prices one active service from PostgreSQL, creates a pending order and returns a Stripe hosted Checkout URL |
+| `POST` | `/api/stripe/webhook` | Verifies Stripe's signature and is the only endpoint that marks a matching paid Checkout order as paid |
+| `GET` | `/api/orders/:orderId` | Returns one authenticated user's own order and item snapshots; returns 404 for another user's order |
 
 Better Auth handles `/api/auth/*` before Express JSON parsing. The React client includes cookies with requests and shares session state between Login and Header. Sessions are stored in PostgreSQL, last seven days and have a one-day update interval. Signup automatically signs the user in. Passwords must contain 8–128 characters. Email verification, password reset and social login are not configured.
 
-`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. It is ready to protect the checkout and per-user order routes in the next implementation stage. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
+`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. The checkout route accepts `serviceId`, an optional `preferredMonth` in `YYYY-MM` format, and a required `message` of up to 2,000 characters. It ignores browser pricing, snapshots the database price into the order item, and never marks an order paid. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
 
-The gallery remains public. `SelectedWork` fetches photos, filters with `.filter()` and renders with `.map()` using stable IDs. It owns favorites state and passes `checked` and `onChange` to each controlled `FavoriteToggle`; updates use a functional state setter.
+For local webhook forwarding, keep the server and Stripe CLI running in separate terminals:
+
+```sh
+stripe listen --events checkout.session.completed --forward-to localhost:3000/api/stripe/webhook
+```
+
+Copy the CLI's `whsec_...` signing secret into `STRIPE_WEBHOOK_SECRET` and restart the server. The webhook uses the raw request body, verifies `Stripe-Signature`, and checks the stored Session ID, user, amount, currency and paid status before updating an order. Repeated delivery of the same successful event is safe.
+
+After Stripe redirects to `/checkout/success?order_id=...`, the React success page polls the protected order endpoint for up to ten seconds. It displays the stored order as paid only after the webhook updates PostgreSQL; the redirect and browser never mark an order paid.
+
+The gallery and service catalog remain public. `SelectedWork` fetches photos, filters with `.filter()` and renders with `.map()` using stable IDs. It owns favorites state and passes `checked` and `onChange` to each controlled `FavoriteToggle`; updates use a functional state setter. The contact form loads session prices from `/api/services`; signed-in users can create Checkout Sessions, while signed-out users are sent through login and returned to `/#contact`.
 
 Read-only API checks while the server is running:
 
