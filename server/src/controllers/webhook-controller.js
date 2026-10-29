@@ -1,12 +1,19 @@
 import { AppError } from '../errors/app-error.js';
 import { sendData } from '../http/respond.js';
 
-export function createWebhookController({ stripe, webhookSecret, processEvent }) {
+export function createWebhookController({ stripe, webhookSecret, getWebhookSecret, processEvent }) {
   return async function webhook(req, res) {
     const signature = req.get('stripe-signature');
     if (!signature) throw new AppError(400, 'STRIPE_SIGNATURE_MISSING', 'Missing Stripe signature.');
+    let secret;
+    try {
+      secret = webhookSecret || getWebhookSecret();
+    } catch {
+      console.error('Stripe webhook configuration is unavailable.');
+      throw new AppError(500, 'WEBHOOK_CONFIGURATION_ERROR', 'Stripe webhook is not configured.');
+    }
     let event;
-    try { event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret); } catch {
+    try { event = stripe.webhooks.constructEvent(req.body, signature, secret); } catch {
       throw new AppError(400, 'STRIPE_SIGNATURE_INVALID', 'Invalid Stripe signature.');
     }
     try { await processEvent(event); } catch {

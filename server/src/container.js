@@ -1,6 +1,6 @@
 import { db } from './db/index.js';
 import { readCheckoutUrls } from './config/env.js';
-import { getStripeClient, getStripeWebhookSecret } from './integrations/stripe.js';
+import { getStripeWebhookSecret, stripeGateway } from './integrations/stripe.js';
 import { createCatalogRepository } from './repositories/catalog-repository.js';
 import { createOrderRepository } from './repositories/order-repository.js';
 import { createAdminOrderRepository } from './repositories/admin-order-repository.js';
@@ -18,7 +18,7 @@ import { createHealthController } from './controllers/health-controller.js';
 
 export function createContainer(overrides = {}) {
   const database = overrides.db || db;
-  const stripe = overrides.stripe || getStripeClient();
+  const stripe = overrides.stripe || stripeGateway;
   const catalogRepository = overrides.catalogRepository || createCatalogRepository(database);
   const orderRepository = overrides.orderRepository || createOrderRepository(database);
   const adminRepository = overrides.adminRepository || createAdminOrderRepository(database);
@@ -29,13 +29,17 @@ export function createContainer(overrides = {}) {
     controllers: {
       catalog: createCatalogController(catalogService),
       checkout: createCheckoutController(createCheckoutService({
-        orderRepository, stripe, checkoutUrls: overrides.checkoutUrls || readCheckoutUrls(),
+        orderRepository,
+        stripe,
+        checkoutUrls: overrides.checkoutUrls,
+        getCheckoutUrls: readCheckoutUrls,
       })),
       orders: createOrderController(createOrderService(orderRepository)),
       adminOrders: createAdminOrderController(createAdminOrderService(adminRepository)),
       webhook: createWebhookController({
         stripe,
-        webhookSecret: overrides.webhookSecret || getStripeWebhookSecret(),
+        webhookSecret: overrides.webhookSecret,
+        getWebhookSecret: getStripeWebhookSecret,
         processEvent,
       }),
       health: createHealthController(createHealthService(systemRepository)),

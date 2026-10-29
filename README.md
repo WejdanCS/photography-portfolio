@@ -28,8 +28,9 @@ Photography Portfolio/
 │   └── package.json
 ├── server/
 │   ├── src/
-│   │   ├── index.js            # Process entry point; starts the listener
+│   │   ├── index.js            # Vercel entry point; exports the Express app
 │   │   ├── app.js              # Express application factory
+│   │   ├── local-server.js     # Local process entry point; starts the listener
 │   │   ├── container.js        # Dependency wiring
 │   │   ├── config/             # Validated environment configuration
 │   │   ├── controllers/        # HTTP input and response translation
@@ -176,7 +177,9 @@ Better Auth handles `/api/auth/*` before Express JSON parsing. The React client 
 
 ### Server architecture
 
-`server/src/app.js` creates and configures Express without opening a port; `server/src/index.js` is the only process entrypoint that calls `listen`. Routes only compose middleware and controllers. Controllers translate HTTP input/output, services own business rules, repositories contain Drizzle queries, and `integrations` isolates Better Auth and Stripe. `container.js` wires these layers with small factory functions so repositories and Stripe can be replaced by test doubles.
+`server/src/app.js` creates and configures Express without opening a port. `server/src/index.js` default-exports the application for Vercel, while `server/src/local-server.js` is the only entrypoint that calls `listen()` for `npm run dev` and `npm start`. Routes only compose middleware and controllers. Controllers translate HTTP input/output, services own business rules, repositories contain Drizzle queries, and `integrations` isolates Better Auth and Stripe. `container.js` wires these layers with small factory functions so repositories and Stripe can be replaced by test doubles.
+
+Stripe and Checkout-specific environment values are read only when their endpoints are used. A missing payment variable therefore cannot prevent health, gallery, services or authentication routes from starting; the affected payment endpoint returns a structured configuration error instead.
 
 The auth handler and Stripe raw-body webhook are mounted before `express.json()`. Central error middleware maps application errors to stable codes without returning database, Stripe, or credential details.
 

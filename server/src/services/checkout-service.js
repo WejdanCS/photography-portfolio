@@ -6,7 +6,7 @@ function successUrl(url, orderId) {
   return `${result.toString()}&session_id={CHECKOUT_SESSION_ID}`;
 }
 
-export function createCheckoutService({ orderRepository, stripe, checkoutUrls }) {
+export function createCheckoutService({ orderRepository, stripe, checkoutUrls, getCheckoutUrls }) {
   return async function startCheckout({ user, input }) {
     const service = await orderRepository.findActiveService(input.serviceId);
     if (!service) throw new AppError(404, 'SERVICE_NOT_FOUND', 'Photography session not found.');
@@ -14,6 +14,7 @@ export function createCheckoutService({ orderRepository, stripe, checkoutUrls })
     let orderId;
     let checkoutSession;
     try {
+      const urls = checkoutUrls || getCheckoutUrls();
       const order = await orderRepository.createPendingOrder({
         userId: user.id,
         service,
@@ -35,8 +36,8 @@ export function createCheckoutService({ orderRepository, stripe, checkoutUrls })
             product_data: { name: `${service.name} photography session`, description: service.description },
           },
         }],
-        success_url: successUrl(checkoutUrls.successUrl, orderId),
-        cancel_url: checkoutUrls.cancelUrl.toString(),
+        success_url: successUrl(urls.successUrl, orderId),
+        cancel_url: urls.cancelUrl.toString(),
         submit_type: 'book',
       }, { idempotencyKey: `checkout-order-${orderId}` });
       if (!checkoutSession.url) throw new Error('Stripe did not return a hosted Checkout URL.');
