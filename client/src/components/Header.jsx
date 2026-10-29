@@ -38,9 +38,10 @@ export default function Header() {
   ) : session ? (
     <>
       <span className="max-w-[12rem] truncate text-[0.875rem] text-text-secondary" title={session.user.name}>{session.user.name}</span>
-      <Link className="inline-flex min-h-target items-center py-xs text-accent no-underline hover:underline" to="/dashboard/orders" onClick={() => setIsMenuOpen(false)}>My orders</Link>
-      {session.user.role === 'admin' && (
+      {session.user.role === 'admin' ? (
         <Link className="inline-flex min-h-target items-center py-xs text-accent no-underline hover:underline" to="/admin/orders" onClick={() => setIsMenuOpen(false)}>Manage orders</Link>
+      ) : (
+        <Link className="inline-flex min-h-target items-center py-xs text-accent no-underline hover:underline" to="/dashboard/orders" onClick={() => setIsMenuOpen(false)}>My orders</Link>
       )}
       <button className="min-h-target cursor-pointer bg-transparent py-xs text-text-primary hover:text-accent disabled:cursor-wait" type="button" disabled={isSigningOut} onClick={handleSignOut}>
         {isSigningOut ? 'Signing out…' : 'Sign out'}
