@@ -5,19 +5,44 @@ import { orderItems, orders, services } from '../db/schema.js';
 import { getStripeClient } from '../stripe.js';
 
 const router = Router();
-const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
+const datePattern = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
-function readCheckoutInput(body) {
+function todayInBookingTimeZone() {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: process.env.BOOKING_TIME_ZONE || 'Asia/Riyadh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(new Date()).map(({ type, value }) => [type, value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function isValidDateInput(value) {
+  if (!datePattern.test(value)) return false;
+
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day;
+}
+
+export function readCheckoutInput(body, today = todayInBookingTimeZone()) {
   const serviceId = typeof body?.serviceId === 'string' ? body.serviceId.trim() : '';
-  const preferredMonth = typeof body?.preferredMonth === 'string' ? body.preferredMonth.trim() : '';
+  const preferredDate = typeof body?.preferredDate === 'string' ? body.preferredDate.trim() : '';
   const projectMessage = typeof body?.message === 'string' ? body.message.trim() : '';
 
   if (!serviceId || serviceId.length > 100) {
     return { error: 'Choose a valid photography session.' };
   }
 
-  if (preferredMonth && !monthPattern.test(preferredMonth)) {
-    return { error: 'Preferred month must use the YYYY-MM format.' };
+  if (preferredDate && !isValidDateInput(preferredDate)) {
+    return { error: 'Preferred date must be a valid date in YYYY-MM-DD format.' };
+  }
+
+  if (preferredDate && preferredDate <= today) {
+    return { error: 'Preferred date must be after today.' };
   }
 
   if (!projectMessage || projectMessage.length > 2000) {
@@ -27,7 +52,7 @@ function readCheckoutInput(body) {
   return {
     value: {
       serviceId,
-      preferredMonth: preferredMonth || null,
+      preferredDate: preferredDate || null,
       projectMessage,
     },
   };
@@ -60,7 +85,7 @@ router.post('/', async (req, res) => {
   const input = readCheckoutInput(req.body);
   if (input.error) return res.status(400).json({ error: input.error });
 
-  const { serviceId, preferredMonth, projectMessage } = input.value;
+  const { serviceId, preferredDate, projectMessage } = input.value;
   const { user } = req.auth;
 
   let orderId;
@@ -84,7 +109,7 @@ router.post('/', async (req, res) => {
           userId: user.id,
           totalAmount: service.unitAmount,
           currency: service.currency,
-          preferredMonth,
+          preferredMonth: preferredDate,
           projectMessage,
         })
         .returning({ id: orders.id });

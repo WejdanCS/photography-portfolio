@@ -5,15 +5,16 @@ export function formatMoney(unitAmount, currency) {
   }).format(unitAmount / 100);
 }
 
-export function formatMonth(month) {
-  if (!month) return 'Not specified';
+export function formatPreferredDate(value) {
+  if (!value) return 'Not specified';
 
-  const [year, monthNumber] = month.split('-').map(Number);
+  const [year, monthNumber, day = 1] = value.split('-').map(Number);
   return new Intl.DateTimeFormat('en-US', {
-    month: 'long',
+    day: value.length === 10 ? 'numeric' : undefined,
+    month: value.length === 10 ? 'short' : 'long',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+  }).format(new Date(Date.UTC(year, monthNumber - 1, day)));
 }
 
 export function formatDate(date) {

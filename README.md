@@ -165,7 +165,7 @@ Edit `server/src/db/photos.data.js` for seed data. Existing database records nee
 
 Better Auth handles `/api/auth/*` before Express JSON parsing. The React client includes cookies with requests and shares session state between Login and Header. Sessions are stored in PostgreSQL, last seven days and have a one-day update interval. Signup automatically signs the user in. Passwords must contain 8–128 characters. Email verification, password reset and social login are not configured.
 
-`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. The checkout route accepts `serviceId`, an optional `preferredMonth` in `YYYY-MM` format, and a required `message` of up to 2,000 characters. It ignores browser pricing, snapshots the database price into the order item, and never marks an order paid. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
+`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. The checkout route accepts `serviceId`, an optional future-only `preferredDate` in `YYYY-MM-DD` format, and a required `message` of up to 2,000 characters. Dates are checked against the current day in `BOOKING_TIME_ZONE` (default: `Asia/Riyadh`). It ignores browser pricing, snapshots the database price into the order item, and never marks an order paid. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
 
 For local webhook forwarding, keep the server and Stripe CLI running in separate terminals:
 

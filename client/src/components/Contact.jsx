@@ -2,8 +2,23 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 import { primaryButton, secondaryButton } from '../styles.js';
+import DatePicker from './DatePicker.jsx';
 
 const singleLineFieldClass = 'h-[3.75rem] w-full min-w-0 max-w-full border border-border rounded-none bg-background p-s text-text-primary leading-[1.5]';
+
+function toLocalDateInputValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTomorrowDateInputValue() {
+  const tomorrow = new Date();
+  tomorrow.setHours(12, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return toLocalDateInputValue(tomorrow);
+}
 
 function formatPrice(unitAmount, currency) {
   return new Intl.NumberFormat('en-US', {
@@ -19,7 +34,9 @@ export default function Contact() {
   const [servicesError, setServicesError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [dateError, setDateError] = useState('');
   const [requestVersion, setRequestVersion] = useState(0);
+  const minimumPreferredDate = getTomorrowDateInputValue();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -57,6 +74,14 @@ export default function Contact() {
     if (!session || isSubmitting) return;
 
     const form = new FormData(event.currentTarget);
+    const preferredDate = form.get('preferredDate');
+
+    if (preferredDate && preferredDate < minimumPreferredDate) {
+      setDateError('Choose a date after today.');
+      return;
+    }
+
+    setDateError('');
     setCheckoutError('');
     setIsSubmitting(true);
 
@@ -67,7 +92,7 @@ export default function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId: form.get('serviceId'),
-          preferredMonth: form.get('preferredMonth'),
+          preferredDate,
           message: form.get('message'),
         }),
       });
@@ -130,8 +155,8 @@ export default function Contact() {
           </select>
         </div>
         <div className="flex min-w-0 flex-col gap-xs">
-          <label className="font-medium" htmlFor="preferredMonth">Preferred month (optional)</label>
-          <input className={singleLineFieldClass} type="month" id="preferredMonth" name="preferredMonth" />
+          <label className="font-medium" htmlFor="preferredDate">Preferred date <span className="font-normal text-text-secondary">(optional)</span></label>
+          <DatePicker inputId="preferredDate" error={dateError} onChange={(value) => setDateError(value && value < minimumPreferredDate ? 'Choose a date after today.' : '')} />
         </div>
         <div className="flex min-w-0 flex-col gap-xs">
           <label className="font-medium" htmlFor="message">Tell me about your project</label>

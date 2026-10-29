@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
-import { formatDate, formatFulfillmentStatus, formatMoney, formatMonth, formatPaymentStatus } from '../lib/order-formatters.js';
+import { formatDate, formatFulfillmentStatus, formatMoney, formatPaymentStatus, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
 
 const fieldClass = 'h-[3.25rem] min-w-0 border border-border bg-background px-s text-text-primary';
@@ -33,8 +33,8 @@ function AdminOrderCard({ order, isUpdating, onStatusChange }) {
         <dd className="m-0 break-all text-text-secondary">{order.id}</dd>
         <dt className="font-medium">Ordered</dt>
         <dd className="m-0 text-text-secondary">{formatDate(order.paidAt || order.createdAt)}</dd>
-        <dt className="font-medium">Preferred month</dt>
-        <dd className="m-0 text-text-secondary">{formatMonth(order.preferredMonth)}</dd>
+        <dt className="font-medium">Preferred date</dt>
+        <dd className="m-0 text-text-secondary">{formatPreferredDate(order.preferredMonth)}</dd>
         <dt className="font-medium">Project</dt>
         <dd className="m-0 whitespace-pre-wrap break-words text-text-secondary md:col-span-3">{order.projectMessage}</dd>
       </dl>

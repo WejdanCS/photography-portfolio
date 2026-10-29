@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
-import { formatFulfillmentStatus, formatMoney, formatMonth, formatPaymentStatus } from '../lib/order-formatters.js';
+import { formatFulfillmentStatus, formatMoney, formatPaymentStatus, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
 
 const maxPollAttempts = 10;
@@ -153,8 +153,8 @@ export default function CheckoutSuccess() {
           <dd className="m-0 text-text-secondary">{order.items[0]?.serviceName || 'Photography session'}</dd>
           <dt className="font-medium">Amount</dt>
           <dd className="m-0 text-text-secondary">{formatMoney(order.totalAmount, order.currency)}</dd>
-          <dt className="font-medium">Preferred month</dt>
-          <dd className="m-0 text-text-secondary">{formatMonth(order.preferredMonth)}</dd>
+          <dt className="font-medium">Preferred date</dt>
+          <dd className="m-0 text-text-secondary">{formatPreferredDate(order.preferredMonth)}</dd>
         </dl>
       )}
 

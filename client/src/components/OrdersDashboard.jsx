@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
-import { formatDate, formatFulfillmentStatus, formatMoney, formatMonth } from '../lib/order-formatters.js';
+import { formatDate, formatFulfillmentStatus, formatMoney, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
 
 const currentStatuses = new Set(['new', 'confirmed']);
@@ -23,8 +23,8 @@ function OrderCard({ order }) {
         <dd className="m-0 break-all text-text-secondary">{order.id}</dd>
         <dt className="font-medium">Ordered</dt>
         <dd className="m-0 text-text-secondary">{formatDate(order.paidAt || order.createdAt)}</dd>
-        <dt className="font-medium">Preferred month</dt>
-        <dd className="m-0 text-text-secondary">{formatMonth(order.preferredMonth)}</dd>
+        <dt className="font-medium">Preferred date</dt>
+        <dd className="m-0 text-text-secondary">{formatPreferredDate(order.preferredMonth)}</dd>
         <dt className="font-medium">Project</dt>
         <dd className="m-0 whitespace-pre-wrap text-text-secondary">{order.projectMessage}</dd>
       </dl>
