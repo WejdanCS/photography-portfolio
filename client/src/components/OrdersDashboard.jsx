@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 import { formatDate, formatFulfillmentStatus, formatMoney, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
+import { apiErrorMessage } from '../lib/api.js';
 
 const currentStatuses = new Set(['new', 'confirmed']);
 const previousStatuses = new Set(['completed', 'cancelled']);
@@ -58,15 +59,15 @@ export default function OrdersDashboard() {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.error || 'Unable to load your orders.');
+          throw new Error(apiErrorMessage(data, 'Unable to load your orders.'));
         }
 
-        if (!Array.isArray(data.orders) || data.orders.some((order) => !Array.isArray(order.items))) {
+        if (!Array.isArray(data.data) || data.data.some((order) => !Array.isArray(order.items))) {
           throw new Error('Invalid orders response.');
         }
 
         if (!controller.signal.aborted) {
-          setOrders(data.orders);
+          setOrders(data.data);
           setStatus('ready');
         }
       } catch (requestError) {

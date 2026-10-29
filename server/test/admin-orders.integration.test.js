@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { eq, inArray } from 'drizzle-orm';
-import { app } from '../src/index.js';
+import { createApp } from '../src/app.js';
 import { db } from '../src/db/index.js';
 import { orders, session, user } from '../src/db/schema.js';
 
@@ -38,6 +38,7 @@ async function authRequest(path, body) {
 }
 
 before(async () => {
+  const app = createApp();
   server = app.listen(0, '127.0.0.1');
   await new Promise((resolve, reject) => {
     server.once('listening', resolve);
@@ -95,7 +96,37 @@ test('a regular user cannot access admin orders', async () => {
   });
 
   assert.equal(response.status, 403);
-  assert.deepEqual(await response.json(), { error: 'Administrator access required.' });
+  assert.deepEqual(await response.json(), {
+    error: { code: 'ADMIN_REQUIRED', message: 'Administrator access required.' },
+  });
+});
+
+test('public endpoints use the standard data envelope', async () => {
+  for (const path of ['health', 'photos', 'services']) {
+    const response = await fetch(`${baseUrl}/api/${path}`);
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.ok(Object.hasOwn(body, 'data'));
+    assert.equal(body.error, undefined);
+  }
+});
+
+test('unknown routes and malformed JSON use structured errors', async () => {
+  const missingResponse = await fetch(`${baseUrl}/api/missing`);
+  assert.equal(missingResponse.status, 404);
+  assert.deepEqual(await missingResponse.json(), {
+    error: { code: 'ROUTE_NOT_FOUND', message: 'Route not found.' },
+  });
+
+  const invalidJsonResponse = await fetch(`${baseUrl}/api/checkout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{',
+  });
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.deepEqual(await invalidJsonResponse.json(), {
+    error: { code: 'INVALID_JSON', message: 'Invalid JSON body.' },
+  });
 });
 
 test('a user cannot read another user order by changing the ID', async () => {
@@ -104,7 +135,9 @@ test('a user cannot read another user order by changing the ID', async () => {
   });
 
   assert.equal(response.status, 404);
-  assert.deepEqual(await response.json(), { error: 'Order not found.' });
+  assert.deepEqual(await response.json(), {
+    error: { code: 'NOT_FOUND', message: 'Order not found.' },
+  });
 });
 
 test('an administrator can list orders and update fulfillment without changing payment', async () => {
@@ -121,7 +154,8 @@ test('an administrator can list orders and update fulfillment without changing p
   });
   assert.equal(listResponse.status, 200);
   const listData = await listResponse.json();
-  assert.equal(listData.orders.some((order) => order.id === orderId), true);
+  assert.equal(listData.data.some((order) => order.id === orderId), true);
+  assert.ok(listData.meta.pagination);
 
   const updateResponse = await fetch(`${baseUrl}/api/admin/orders/${orderId}/status`, {
     method: 'PATCH',
@@ -133,9 +167,9 @@ test('an administrator can list orders and update fulfillment without changing p
   });
   assert.equal(updateResponse.status, 200);
   const updateData = await updateResponse.json();
-  assert.equal(updateData.order.status, 'paid');
-  assert.equal(updateData.order.fulfillmentStatus, 'completed');
-  assert.ok(updateData.order.completedAt);
+  assert.equal(updateData.data.status, 'paid');
+  assert.equal(updateData.data.fulfillmentStatus, 'completed');
+  assert.ok(updateData.data.completedAt);
 });
 
 test('an expired session cannot access admin orders', async () => {

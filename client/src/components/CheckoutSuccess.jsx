@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 import { formatFulfillmentStatus, formatMoney, formatPaymentStatus, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
+import { apiErrorMessage } from '../lib/api.js';
 
 const maxPollAttempts = 10;
 
@@ -38,23 +39,23 @@ export default function CheckoutSuccess() {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.error || 'Unable to load your order.');
+          throw new Error(apiErrorMessage(data, 'Unable to load your order.'));
         }
 
-        if (!data.order || !Array.isArray(data.order.items)) {
+        if (!data.data || !Array.isArray(data.data.items)) {
           throw new Error('Invalid order response.');
         }
 
         setResultKey(accountOrderKey);
-        setOrder(data.order);
+        setOrder(data.data);
         setError('');
 
-        if (data.order.status === 'paid') {
+        if (data.data.status === 'paid') {
           setStatus('paid');
           return;
         }
 
-        if (data.order.status === 'checkout_failed') {
+        if (data.data.status === 'checkout_failed') {
           setStatus('failed');
           return;
         }

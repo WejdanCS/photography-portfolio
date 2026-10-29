@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 import { formatDate, formatFulfillmentStatus, formatMoney, formatPaymentStatus, formatPreferredDate } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
+import { apiErrorMessage } from '../lib/api.js';
 
 const fieldClass = 'h-[3.25rem] min-w-0 border border-border bg-background px-s text-text-primary';
 const fulfillmentActions = [
@@ -91,12 +92,12 @@ export default function AdminOrders() {
         });
         const data = await response.json().catch(() => ({}));
 
-        if (!response.ok) throw new Error(data.error || 'Unable to load orders.');
-        if (!Array.isArray(data.orders) || !data.pagination) throw new Error('Invalid admin orders response.');
+        if (!response.ok) throw new Error(apiErrorMessage(data, 'Unable to load orders.'));
+        if (!Array.isArray(data.data) || !data.meta?.pagination) throw new Error('Invalid admin orders response.');
 
         if (!controller.signal.aborted) {
-          setOrders(data.orders);
-          setPagination(data.pagination);
+          setOrders(data.data);
+          setPagination(data.meta.pagination);
           setStatus('ready');
         }
       } catch (requestError) {
@@ -131,10 +132,10 @@ export default function AdminOrders() {
       });
       const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) throw new Error(data.error || 'Unable to update the order.');
+      if (!response.ok) throw new Error(apiErrorMessage(data, 'Unable to update the order.'));
 
       setOrders((currentOrders) => currentOrders.map((order) => (
-        order.id === orderId ? { ...order, ...data.order } : order
+        order.id === orderId ? { ...order, ...data.data } : order
       )));
     } catch (requestError) {
       setUpdateError(requestError.message || 'Unable to update the order.');

@@ -1,6 +1,6 @@
 # Photography Portfolio
 
-A photography portfolio for the fictional photographer **Alex Morgan**, built with React, Tailwind CSS and JavaScript. An Express API reads gallery data from PostgreSQL through Drizzle ORM. Better Auth manages signup, login and persistent sessions. The server also contains the database and authentication foundation for Stripe test-mode session purchases; checkout routes and UI are not connected yet.
+A photography portfolio for the fictional photographer **Alex Morgan**, built with React, Tailwind CSS and JavaScript. An Express API reads gallery and order data from PostgreSQL through Drizzle ORM. Better Auth manages accounts and sessions, while Stripe Checkout handles test-mode photography bookings.
 
 ## Features
 
@@ -10,7 +10,7 @@ A photography portfolio for the fictional photographer **Alex Morgan**, built wi
 - Email/password signup and login at `/login`, with automatic return to the home page after authentication.
 - Header displaying session loading, the signed-in user's name and sign-out controls.
 - Labelled controls, keyboard focus styles and reduced-motion support for the gallery loader.
-- Booking form preview with a disabled submit button. No booking request or email is sent.
+- Authenticated Stripe test-mode booking, customer order history and an administrator order-management view.
 
 ## Project structure
 
@@ -22,23 +22,28 @@ Photography Portfolio/
 │   │   ├── main.jsx            # React entry point
 │   │   ├── components/         # Portfolio sections, Login and FavoriteToggle
 │   │   ├── lib/auth-client.js  # Better Auth React client
-│   │   ├── styles.js           # Shared container and button utilities
-│   │   └── data/photos.js      # Original data, no longer used by the gallery
+│   │   └── styles.js           # Shared container and button utilities
 │   ├── css/                    # Tailwind theme and base styles
 │   ├── vite.config.js          # Development API proxy
 │   └── package.json
 ├── server/
 │   ├── src/
-│   │   ├── index.js            # Express entry point and route mounting
-│   │   ├── auth.js             # Better Auth configuration
-│   │   ├── stripe.js           # Lazy Stripe test-mode configuration
-│   │   ├── middleware/         # Reusable authenticated-route guard
-│   │   ├── routes/photos.js    # Gallery API
+│   │   ├── index.js            # Process entry point; starts the listener
+│   │   ├── app.js              # Express application factory
+│   │   ├── container.js        # Dependency wiring
+│   │   ├── config/             # Validated environment configuration
+│   │   ├── controllers/        # HTTP input and response translation
+│   │   ├── services/           # Business and payment rules
+│   │   ├── repositories/       # Drizzle data access
+│   │   ├── validators/         # Zod request schemas
+│   │   ├── integrations/       # Better Auth and Stripe adapters
+│   │   ├── middleware/         # Authentication and error handling
+│   │   ├── routes/             # API route composition
 │   │   └── db/
 │   │       ├── index.js        # PostgreSQL connection and Drizzle instance
-│   │       ├── schema.js       # Photos and auth table definitions
-│   │       ├── photos.data.js  # Four original gallery records
-│   │       └── seed.js         # Insert missing photos
+│   │       ├── schema.js       # Auth, catalog and order tables
+│   │       ├── photos.data.js  # Gallery seed records
+│   │       └── seed.js         # Insert missing catalog records
 │   ├── .env.example            # Placeholder values only
 │   ├── drizzle.config.js
 │   └── package.json
@@ -142,13 +147,13 @@ Accounts and sessions reference users and are deleted when their user is deleted
 
 The service seed uses integer USD cents: Portrait `15000`, Lifestyle `17500`, Travel `25000`, Architecture `20000`, and Other `15000`. It inserts missing service IDs without overwriting or duplicating existing records.
 
-Edit `server/src/db/photos.data.js` for seed data. Existing database records need an explicit update because the seed skips duplicate IDs. The old `client/src/data/photos.js` file is no longer the gallery's data source.
+Edit `server/src/db/photos.data.js` for seed data. Existing database records need an explicit update because the seed skips duplicate IDs.
 
 ## API and authentication
 
 | Method | Endpoint | Behavior |
 | --- | --- | --- |
-| `GET` | `/api/photos` | Returns `{ "photos": [...] }` ordered by `sortOrder`, then ID; returns 500 on failure |
+| `GET` | `/api/photos` | Returns the ordered photo array in `{ "data": [...] }`; returns 500 on failure |
 | `GET` | `/api/services` | Returns active photography-session names and authoritative database prices |
 | `GET` | `/api/health` | Checks the database with `SELECT 1`; returns 200 when connected or 503 when unavailable |
 | `POST` | `/api/auth/sign-up/email` | Creates an account using name, email and password |
@@ -163,9 +168,17 @@ Edit `server/src/db/photos.data.js` for seed data. Existing database records nee
 | `GET` | `/api/admin/orders/:orderId` | Admin-only full order and customer details |
 | `PATCH` | `/api/admin/orders/:orderId/status` | Admin-only fulfillment update for paid orders; never changes payment state |
 
+Application-owned endpoints return successful resources as `{ "data": ... }`, with pagination under `{ "meta": { "pagination": ... } }`. Errors use `{ "error": { "code": "...", "message": "...", "details": [...] } }`; validation details identify the rejected field. Better Auth retains its library-owned response format.
+
 Better Auth handles `/api/auth/*` before Express JSON parsing. The React client includes cookies with requests and shares session state between Login and Header. Sessions are stored in PostgreSQL, last seven days and have a one-day update interval. Signup automatically signs the user in. Passwords must contain 8–128 characters. Email verification, password reset and social login are not configured.
 
-`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. The checkout route accepts `serviceId`, an optional future-only `preferredDate` in `YYYY-MM-DD` format, and a required `message` of up to 2,000 characters. Dates are checked against the current day in `BOOKING_TIME_ZONE` (default: `Asia/Riyadh`). It ignores browser pricing, snapshots the database price into the order item, and never marks an order paid. Stripe configuration is lazy, so the existing gallery/auth server can still start before local Stripe secrets are supplied.
+`server/src/middleware/require-auth.js` exposes the authenticated Better Auth session as `req.auth` and returns `401` when no valid session cookie exists. The checkout route accepts `serviceId`, an optional future-only `preferredDate` in `YYYY-MM-DD` format, and a required `message` of up to 2,000 characters. Zod validates request bodies, parameters and queries. Dates are checked against the current day in `BOOKING_TIME_ZONE` (default: `Asia/Riyadh`). It ignores browser pricing, snapshots the database price into the order item, and never marks an order paid. Environment configuration is validated centrally when the application starts.
+
+### Server architecture
+
+`server/src/app.js` creates and configures Express without opening a port; `server/src/index.js` is the only process entrypoint that calls `listen`. Routes only compose middleware and controllers. Controllers translate HTTP input/output, services own business rules, repositories contain Drizzle queries, and `integrations` isolates Better Auth and Stripe. `container.js` wires these layers with small factory functions so repositories and Stripe can be replaced by test doubles.
+
+The auth handler and Stripe raw-body webhook are mounted before `express.json()`. Central error middleware maps application errors to stable codes without returning database, Stripe, or credential details.
 
 For local webhook forwarding, keep the server and Stripe CLI running in separate terminals:
 
@@ -212,6 +225,14 @@ From `client/`:
 npm run lint
 npm run build
 ```
+
+From `server/`:
+
+```sh
+npm test
+```
+
+The server test suite includes validator and service unit tests plus authenticated API integration coverage. Import `createApp` from `server/src/app.js` in tests; importing it never starts a listener.
 
 From `server/`, run the database-backed authorization and webhook-rejection tests:
 

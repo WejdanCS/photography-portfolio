@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import FavoriteToggle from './FavoriteToggle.jsx';
 import { secondaryButton } from '../styles.js';
+import { apiErrorMessage } from '../lib/api.js';
 
 const categories = ['All', 'Portrait', 'Nature', 'Travel', 'Architecture'];
 const galleryStatus = 'mt-l flex min-h-[16rem] flex-col items-center justify-center border-y border-border px-m py-l text-center';
@@ -19,12 +20,11 @@ export default function SelectedWork() {
     async function loadPhotos() {
       try {
         const response = await fetch('/api/photos', { signal: controller.signal });
-        if (!response.ok) throw new Error('Failed to fetch photos.');
-
         const data = await response.json();
-        if (!Array.isArray(data.photos)) throw new Error('Invalid photos response.');
+        if (!response.ok) throw new Error(apiErrorMessage(data, 'Failed to fetch photos.'));
+        if (!Array.isArray(data.data)) throw new Error('Invalid photos response.');
 
-        if (!controller.signal.aborted) setPhotos(data.photos);
+        if (!controller.signal.aborted) setPhotos(data.data);
       } catch {
         if (!controller.signal.aborted) {
           setError('Unable to load photos. Please try again.');

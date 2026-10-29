@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 import { primaryButton, secondaryButton } from '../styles.js';
 import DatePicker from './DatePicker.jsx';
+import { apiErrorMessage } from '../lib/api.js';
 
 const singleLineFieldClass = 'h-[3.75rem] w-full min-w-0 max-w-full border border-border rounded-none bg-background p-s text-text-primary leading-[1.5]';
 
@@ -44,12 +45,11 @@ export default function Contact() {
     async function loadServices() {
       try {
         const response = await fetch('/api/services', { signal: controller.signal });
-        if (!response.ok) throw new Error('Failed to fetch photography sessions.');
-
         const data = await response.json();
-        if (!Array.isArray(data.services)) throw new Error('Invalid services response.');
+        if (!response.ok) throw new Error(apiErrorMessage(data, 'Failed to fetch photography sessions.'));
+        if (!Array.isArray(data.data)) throw new Error('Invalid services response.');
 
-        if (!controller.signal.aborted) setServices(data.services);
+        if (!controller.signal.aborted) setServices(data.data);
       } catch {
         if (!controller.signal.aborted) {
           setServicesError('Unable to load session prices. Please try again.');
@@ -104,11 +104,11 @@ export default function Contact() {
         return;
       }
 
-      if (!response.ok || typeof data.checkoutUrl !== 'string') {
-        throw new Error(data.error || 'Unable to start checkout.');
+      if (!response.ok || typeof data.data?.checkoutUrl !== 'string') {
+        throw new Error(apiErrorMessage(data, 'Unable to start checkout.'));
       }
 
-      window.location.assign(data.checkoutUrl);
+      window.location.assign(data.data.checkoutUrl);
     } catch (error) {
       setCheckoutError(error.message || 'Unable to start checkout. Please try again.');
       setIsSubmitting(false);
