@@ -9,7 +9,10 @@ import Footer from './components/Footer.jsx';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router';
 import Login from './components/Login.jsx';
 import CheckoutSuccess from './components/CheckoutSuccess.jsx';
+import OrdersDashboard from './components/OrdersDashboard.jsx';
+import AdminOrders from './components/AdminOrders.jsx';
 import { authClient } from './lib/auth-client.js';
+import { resolveAuthReturnTo } from './lib/auth-redirect.js';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -53,9 +56,7 @@ function LoginPage() {
   const { data: session } = authClient.useSession();
   const [searchParams] = useSearchParams();
   const requestedReturn = searchParams.get('returnTo');
-  const returnTo = requestedReturn?.startsWith('/') && !requestedReturn.startsWith('//')
-    ? requestedReturn
-    : '/';
+  const returnTo = resolveAuthReturnTo(requestedReturn, session?.user.role);
 
   return session ? <Navigate to={returnTo} replace /> : <Login />;
 }
@@ -77,6 +78,8 @@ export default function App() {
           } />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/dashboard/orders" element={<OrdersDashboard />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

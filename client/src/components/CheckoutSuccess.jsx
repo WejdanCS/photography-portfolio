@@ -1,27 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
+import { formatFulfillmentStatus, formatMoney, formatMonth, formatPaymentStatus } from '../lib/order-formatters.js';
 import { primaryButton, secondaryButton } from '../styles.js';
 
 const maxPollAttempts = 10;
-
-function formatMoney(unitAmount, currency) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-  }).format(unitAmount / 100);
-}
-
-function formatMonth(month) {
-  if (!month) return 'Not specified';
-
-  const [year, monthNumber] = month.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
-}
 
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
@@ -163,7 +146,9 @@ export default function CheckoutSuccess() {
           <dt className="font-medium">Order</dt>
           <dd className="m-0 break-all text-text-secondary">{order.id}</dd>
           <dt className="font-medium">Status</dt>
-          <dd className="m-0 capitalize text-text-secondary">{order.status}</dd>
+          <dd className="m-0 text-text-secondary">{formatPaymentStatus(order.status)}</dd>
+          <dt className="font-medium">Booking status</dt>
+          <dd className="m-0 text-text-secondary">{formatFulfillmentStatus(order.fulfillmentStatus)}</dd>
           <dt className="font-medium">Session</dt>
           <dd className="m-0 text-text-secondary">{order.items[0]?.serviceName || 'Photography session'}</dd>
           <dt className="font-medium">Amount</dt>
@@ -174,7 +159,13 @@ export default function CheckoutSuccess() {
       )}
 
       {status === 'paid' && (
-        <p className="mt-m border-l-2 border-accent pl-s">Your test payment is complete and the order is now marked paid.</p>
+        <div className="mt-m">
+          <p className="border-l-2 border-accent pl-s">Your payment is complete. Your booking is now received, and the photographer will contact you to confirm the details.</p>
+          <div className="mt-m flex flex-wrap gap-s">
+            <Link className={primaryButton} to="/dashboard/orders">View my orders</Link>
+            <Link className={secondaryButton} to="/">Back to home</Link>
+          </div>
+        </div>
       )}
     </section>
   );

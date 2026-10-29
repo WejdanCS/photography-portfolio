@@ -9,7 +9,9 @@ import photosRouter from './routes/photos.js';
 import servicesRouter from './routes/services.js';
 import checkoutRouter from './routes/checkout.js';
 import ordersRouter from './routes/orders.js';
+import adminOrdersRouter from './routes/admin-orders.js';
 import { requireAuth } from './middleware/require-auth.js';
+import { requireAdmin } from './middleware/require-admin.js';
 import { stripeWebhook } from './routes/stripe-webhook.js';
 
 const app = express();
@@ -36,6 +38,7 @@ app.use('/api/photos', photosRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/checkout', requireAuth, checkoutRouter);
 app.use('/api/orders', requireAuth, ordersRouter);
+app.use('/api/admin/orders', requireAuth, requireAdmin, adminOrdersRouter);
 
 app.get('/api/health', async (req, res) => {
   res.set('Cache-Control', 'no-store');
@@ -69,6 +72,10 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Internal server error.' });
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server listening on http://localhost:${port}`);
+  });
+}
+
+export { app };

@@ -1,11 +1,17 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
+export const userRole = pgEnum('user_role', [
+  'user',
+  'admin',
+]);
+
 // Better Auth manages users, credentials and persistent sessions.
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
+  role: userRole('role').default('user').notNull(),
   emailVerified: boolean('email_verified').default(false).notNull(),
   image: text('image'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -85,10 +91,18 @@ export const orderStatus = pgEnum('order_status', [
   'checkout_failed',
 ]);
 
+export const orderFulfillmentStatus = pgEnum('order_fulfillment_status', [
+  'new',
+  'confirmed',
+  'completed',
+  'cancelled',
+]);
+
 export const orders = pgTable('orders', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
   status: orderStatus('status').default('pending').notNull(),
+  fulfillmentStatus: orderFulfillmentStatus('fulfillment_status').default('new').notNull(),
   totalAmount: integer('total_amount').notNull(),
   currency: text('currency').notNull(),
   preferredMonth: text('preferred_month'),
@@ -96,11 +110,14 @@ export const orders = pgTable('orders', {
   stripeCheckoutSessionId: text('stripe_checkout_session_id'),
   stripePaymentIntentId: text('stripe_payment_intent_id'),
   paidAt: timestamp('paid_at'),
+  completedAt: timestamp('completed_at'),
+  cancelledAt: timestamp('cancelled_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
 }, (table) => [
   index('orders_user_id_idx').on(table.userId),
   index('orders_status_idx').on(table.status),
+  index('orders_fulfillment_status_idx').on(table.fulfillmentStatus),
   uniqueIndex('orders_stripe_checkout_session_id_idx').on(table.stripeCheckoutSessionId),
   uniqueIndex('orders_stripe_payment_intent_id_idx').on(table.stripePaymentIntentId),
   check('orders_total_amount_positive', sql`${table.totalAmount} > 0`),

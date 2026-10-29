@@ -8,6 +8,9 @@
       "source": "/api/:path*",
       "destination": "https://photography-portfolio-self-rho.vercel.app/api/:path*"
     },
-    { "source": "/login", "destination": "/index.html" }
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

@@ -84,15 +84,25 @@ Replace the example secret. Keep secrets on the server; never place them in fron
 From `server/`, against your development database:
 
 ```sh
-npm run db:push
+npm run db:migrate
 npm run db:seed
 ```
 
-`db:push` applies the schema to the configured database. Review proposed changes before accepting them. The seed inserts four photos and skips existing IDs, so rerunning it does not create duplicates. It does not update existing records or delete data.
+`db:migrate` applies committed incremental migrations while preserving existing users and orders. The seed inserts four photos and the available services, and skips existing IDs so rerunning it does not create duplicates. It does not update existing records or delete data.
+
+After the site owner has created a normal account, promote it once from `server/`:
+
+```sh
+npm run admin:promote -- owner@example.com
+```
+
+New accounts always receive the `user` role. The signup API cannot assign `admin`; promotion requires direct server/database access. Sign out and back in after promotion so the browser receives fresh session data.
 
 Other database commands:
 
 - `npm run db:generate`: generate migration files; does not apply them.
+- `npm run db:migrate`: apply committed Drizzle migrations to the configured database.
+- `npm run db:push`: compare the schema directly with a development database; review proposed changes before accepting them.
 - `npm run db:studio`: open the database inspection tool.
 
 ### 3. Start both applications
@@ -120,12 +130,12 @@ Vite forwards `/api/*` requests to `http://localhost:3000`. The frontend uses re
 | Table | What it stores |
 | --- | --- |
 | `photos` | Stable text ID, title, category, image URL, alternative text, dimensions, aspect class and display order |
-| `user` | Name, unique email, verification flag, optional image and timestamps |
+| `user` | Name, unique email, `user`/`admin` role, verification flag, optional image and timestamps |
 | `account` | Auth provider details and password hash managed by Better Auth |
 | `session` | Unique session token, expiration, user reference and optional client metadata |
 | `verification` | Verification identifiers, values and expiration timestamps used by Better Auth |
 | `services` | Purchasable photography-session types and authoritative prices in cents |
-| `orders` | One authenticated user's purchase, payment state, booking details and Stripe references |
+| `orders` | One authenticated user's purchase, separate payment and fulfillment states, booking details and Stripe references |
 | `order_items` | Immutable service-name and price snapshots for each order |
 
 Accounts and sessions reference users and are deleted when their user is deleted. Orders reference real users, and order items are deleted with their order. Photos are public content independent of user accounts. Favorites still remain client-side only.
@@ -147,7 +157,11 @@ Edit `server/src/db/photos.data.js` for seed data. Existing database records nee
 | `POST` | `/api/auth/sign-out` | Signs out the current session |
 | `POST` | `/api/checkout` | Requires login, prices one active service from PostgreSQL, creates a pending order and returns a Stripe hosted Checkout URL |
 | `POST` | `/api/stripe/webhook` | Verifies Stripe's signature and is the only endpoint that marks a matching paid Checkout order as paid |
+| `GET` | `/api/orders` | Returns the signed-in user's paid orders and item snapshots, newest first |
 | `GET` | `/api/orders/:orderId` | Returns one authenticated user's own order and item snapshots; returns 404 for another user's order |
+| `GET` | `/api/admin/orders` | Admin-only paginated order list with customer/order search and payment/fulfillment filters |
+| `GET` | `/api/admin/orders/:orderId` | Admin-only full order and customer details |
+| `PATCH` | `/api/admin/orders/:orderId/status` | Admin-only fulfillment update for paid orders; never changes payment state |
 
 Better Auth handles `/api/auth/*` before Express JSON parsing. The React client includes cookies with requests and shares session state between Login and Header. Sessions are stored in PostgreSQL, last seven days and have a one-day update interval. Signup automatically signs the user in. Passwords must contain 8–128 characters. Email verification, password reset and social login are not configured.
 
@@ -161,7 +175,9 @@ stripe listen --events checkout.session.completed --forward-to localhost:3000/ap
 
 Copy the CLI's `whsec_...` signing secret into `STRIPE_WEBHOOK_SECRET` and restart the server. The webhook uses the raw request body, verifies `Stripe-Signature`, and checks the stored Session ID, user, amount, currency and paid status before updating an order. Repeated delivery of the same successful event is safe.
 
-After Stripe redirects to `/checkout/success?order_id=...`, the React success page polls the protected order endpoint for up to ten seconds. It displays the stored order as paid only after the webhook updates PostgreSQL; the redirect and browser never mark an order paid.
+After Stripe redirects to `/checkout/success?order_id=...`, the React success page polls the protected order endpoint for up to ten seconds. It displays the stored order as paid only after the webhook updates PostgreSQL; the redirect and browser never mark an order paid. The confirmed receipt links to `/dashboard/orders`, where `new` and `confirmed` bookings appear as current orders and `completed` and `cancelled` bookings appear as previous orders. Signed-out visitors are returned through login before viewing this private route.
+
+Administrators receive a **Manage orders** header link to `/admin/orders`. The page can search by customer name, email or order ID, filter both status types, and move a paid order to confirmed, completed or cancelled. The Express routes enforce the role independently of the React UI and return `403` to authenticated non-admin users.
 
 The gallery and service catalog remain public. `SelectedWork` fetches photos, filters with `.filter()` and renders with `.map()` using stable IDs. It owns favorites state and passes `checked` and `onChange` to each controlled `FavoriteToggle`; updates use a functional state setter. The contact form loads session prices from `/api/services`; signed-in users can create Checkout Sessions, while signed-out users are sent through login and returned to `/#contact`.
 
@@ -196,6 +212,14 @@ From `client/`:
 npm run lint
 npm run build
 ```
+
+From `server/`, run the database-backed authorization and webhook-rejection tests:
+
+```sh
+npm test
+```
+
+The test creates isolated temporary users and an order, verifies regular-user isolation, admin fulfillment updates, expired-session rejection and invalid Stripe signatures, then removes its fixtures.
 
 Both commands passed after the latest UI changes. Backend JavaScript syntax checks passed when the files were added. These checks do not establish successful database connectivity, authentication or browser responsiveness.
 

@@ -29,6 +29,16 @@ export const auth = betterAuth({
     maxPasswordLength: 128,
     autoSignIn: true,
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        fieldName: 'role',
+        defaultValue: 'user',
+        input: false,
+      },
+    },
+  },
   // Sessions are stored in Postgres and renewed after one day of activity.
   session: {
     expiresIn: 60 * 60 * 24 * 7,
