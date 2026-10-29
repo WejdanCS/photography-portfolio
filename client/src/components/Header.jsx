@@ -1,12 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 import { pageContainer } from '../styles.js';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../lib/auth-client.js';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const mobileMenuId = useId();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { data: session, isPending, error: sessionError, refetch } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
@@ -19,7 +20,10 @@ export default function Header() {
     try {
       const result = await authClient.signOut();
       if (result.error) setSignOutError('Unable to sign out. Please try again.');
-      else setIsMenuOpen(false);
+      else {
+        setIsMenuOpen(false);
+        navigate('/login', { replace: true });
+      }
     } catch {
       setSignOutError('Unable to sign out. Please check your connection.');
     } finally {

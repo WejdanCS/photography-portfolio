@@ -14,7 +14,13 @@ export default function CheckoutSuccess() {
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
+  const [resultKey, setResultKey] = useState(null);
   const [retryVersion, setRetryVersion] = useState(0);
+  const accountOrderKey = userId && orderId ? `${userId}:${orderId}` : null;
+  const isCurrentResult = resultKey === accountOrderKey;
+  const displayedOrder = isCurrentResult ? order : null;
+  const displayedStatus = isCurrentResult ? status : 'loading';
+  const displayedError = isCurrentResult ? error : '';
 
   useEffect(() => {
     if (isSessionPending || !userId || !orderId) return undefined;
@@ -39,7 +45,9 @@ export default function CheckoutSuccess() {
           throw new Error('Invalid order response.');
         }
 
+        setResultKey(accountOrderKey);
         setOrder(data.order);
+        setError('');
 
         if (data.order.status === 'paid') {
           setStatus('paid');
@@ -60,6 +68,8 @@ export default function CheckoutSuccess() {
         }
       } catch (requestError) {
         if (!controller.signal.aborted) {
+          setResultKey(accountOrderKey);
+          setOrder(null);
           setError(requestError.message || 'Unable to load your order.');
           setStatus('error');
         }
@@ -72,7 +82,7 @@ export default function CheckoutSuccess() {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [isSessionPending, orderId, retryVersion, userId]);
+  }, [accountOrderKey, isSessionPending, orderId, retryVersion, userId]);
 
   function retryOrder() {
     setError('');
@@ -110,55 +120,55 @@ export default function CheckoutSuccess() {
     <section className="mx-auto w-full max-w-auth py-(--section-spacing)" aria-labelledby="checkout-heading" aria-live="polite">
       <p className="mb-s text-[0.875rem] uppercase tracking-label text-accent">Stripe test payment</p>
       <h1 id="checkout-heading">
-        {status === 'paid' ? 'Payment confirmed' : 'Confirming your payment'}
+        {displayedStatus === 'paid' ? 'Payment confirmed' : 'Confirming your payment'}
       </h1>
 
-      {(status === 'loading' || status === 'pending') && (
+      {(displayedStatus === 'loading' || displayedStatus === 'pending') && (
         <div role="status">
           <p>Stripe has returned you to the portfolio. We’re waiting for the secure webhook confirmation.</p>
           <p className="text-text-secondary">This normally takes only a few seconds.</p>
         </div>
       )}
 
-      {status === 'timeout' && (
+      {displayedStatus === 'timeout' && (
         <div role="status">
           <p>Your order is still pending. The webhook may be taking longer than expected.</p>
           <button className={secondaryButton} type="button" onClick={retryOrder}>Check again</button>
         </div>
       )}
 
-      {status === 'failed' && (
+      {displayedStatus === 'failed' && (
         <div role="alert">
           <p>Checkout could not be completed for this order.</p>
           <Link className={secondaryButton} to="/#contact">Return to booking</Link>
         </div>
       )}
 
-      {status === 'error' && (
+      {displayedStatus === 'error' && (
         <div role="alert">
-          <p>{error}</p>
+          <p>{displayedError}</p>
           <button className={secondaryButton} type="button" onClick={retryOrder}>Try again</button>
         </div>
       )}
 
-      {order && (
+      {displayedOrder && (
         <dl className="mt-l grid grid-cols-[auto_1fr] gap-x-m gap-y-s border-y border-border py-m">
           <dt className="font-medium">Order</dt>
-          <dd className="m-0 break-all text-text-secondary">{order.id}</dd>
+          <dd className="m-0 break-all text-text-secondary">{displayedOrder.id}</dd>
           <dt className="font-medium">Status</dt>
-          <dd className="m-0 text-text-secondary">{formatPaymentStatus(order.status)}</dd>
+          <dd className="m-0 text-text-secondary">{formatPaymentStatus(displayedOrder.status)}</dd>
           <dt className="font-medium">Booking status</dt>
-          <dd className="m-0 text-text-secondary">{formatFulfillmentStatus(order.fulfillmentStatus)}</dd>
+          <dd className="m-0 text-text-secondary">{formatFulfillmentStatus(displayedOrder.fulfillmentStatus)}</dd>
           <dt className="font-medium">Session</dt>
-          <dd className="m-0 text-text-secondary">{order.items[0]?.serviceName || 'Photography session'}</dd>
+          <dd className="m-0 text-text-secondary">{displayedOrder.items[0]?.serviceName || 'Photography session'}</dd>
           <dt className="font-medium">Amount</dt>
-          <dd className="m-0 text-text-secondary">{formatMoney(order.totalAmount, order.currency)}</dd>
+          <dd className="m-0 text-text-secondary">{formatMoney(displayedOrder.totalAmount, displayedOrder.currency)}</dd>
           <dt className="font-medium">Preferred date</dt>
-          <dd className="m-0 text-text-secondary">{formatPreferredDate(order.preferredMonth)}</dd>
+          <dd className="m-0 text-text-secondary">{formatPreferredDate(displayedOrder.preferredMonth)}</dd>
         </dl>
       )}
 
-      {status === 'paid' && (
+      {displayedStatus === 'paid' && (
         <div className="mt-m">
           <p className="border-l-2 border-accent pl-s">Your payment is complete. Your booking is now received, and the photographer will contact you to confirm the details.</p>
           <div className="mt-m flex flex-wrap gap-s">
