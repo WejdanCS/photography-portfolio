@@ -30,6 +30,7 @@ function formatPrice(unitAmount, currency) {
 
 export default function Contact() {
   const { data: session, isPending: isSessionPending } = authClient.useSession();
+  const isAdmin = session?.user.role === 'admin';
   const [services, setServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [servicesError, setServicesError] = useState('');
@@ -71,7 +72,7 @@ export default function Contact() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!session || isSubmitting) return;
+    if (!session || isAdmin || isSubmitting) return;
 
     const form = new FormData(event.currentTarget);
     const preferredDate = form.get('preferredDate');
@@ -122,7 +123,9 @@ export default function Contact() {
       <h2 id="contact-heading">Contact / Book a Shoot</h2>
       <p className="max-w-[60ch]">Choose a photography session, tell me about your idea, and continue to secure test-mode payment with Stripe.</p>
       <p id="form-note" className="max-w-[60ch] border-l-2 border-l-accent pl-s text-[0.875rem]">
-        {session
+        {isAdmin
+          ? 'Administrator accounts manage customer bookings and cannot place orders.'
+          : session
           ? `This order will be linked to ${session.user.email}. No real money will be charged.`
           : 'Sign in before ordering so the payment can be linked to your account.'}
       </p>
@@ -134,7 +137,9 @@ export default function Contact() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-l flex w-full max-w-[40rem] flex-col gap-m" aria-describedby="form-note" aria-busy={isSubmitting}>
+      {isAdmin && <Link className={`${secondaryButton} mt-m self-start`} to="/admin/orders">Manage customer orders</Link>}
+
+      <form onSubmit={handleSubmit} className={`${isAdmin ? 'hidden' : 'flex'} mt-l w-full max-w-[40rem] flex-col gap-m`} aria-describedby="form-note" aria-busy={isSubmitting}>
         <div className="flex min-w-0 flex-col gap-xs">
           <label className="font-medium" htmlFor="name">Name</label>
           <input className={singleLineFieldClass} type="text" id="name" name="name" value={session?.user.name || ''} placeholder="Sign in to continue" readOnly aria-readonly="true" />

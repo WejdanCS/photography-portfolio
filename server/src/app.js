@@ -7,6 +7,7 @@ import { createContainer } from './container.js';
 import { createApiRouter } from './routes/index.js';
 import { requireAuth } from './middleware/require-auth.js';
 import { requireAdmin } from './middleware/require-admin.js';
+import { requireCustomer } from './middleware/require-customer.js';
 import { asyncHandler } from './middleware/async-handler.js';
 import { errorHandler, notFoundHandler } from './middleware/errors.js';
 
@@ -19,7 +20,12 @@ export function createApp(options = {}) {
   app.all('/api/auth/*splat', toNodeHandler(auth));
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), asyncHandler(container.controllers.webhook));
   app.use(express.json({ limit: '100kb' }));
-  app.use('/api', createApiRouter({ controllers: container.controllers, requireAuth, requireAdmin }));
+  app.use('/api', createApiRouter({
+    controllers: container.controllers,
+    requireAuth,
+    requireAdmin,
+    requireCustomer,
+  }));
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

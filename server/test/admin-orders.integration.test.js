@@ -172,6 +172,32 @@ test('an administrator can list orders and update fulfillment without changing p
   assert.ok(updateData.data.completedAt);
 });
 
+test('an administrator cannot use customer checkout or order endpoints', async () => {
+  for (const request of [
+    { path: '/api/orders', options: {} },
+    {
+      path: '/api/checkout',
+      options: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceId: 'portrait', message: 'Admin order attempt.' }),
+      },
+    },
+  ]) {
+    const response = await fetch(`${baseUrl}${request.path}`, {
+      ...request.options,
+      headers: { ...request.options.headers, Cookie: adminCookie },
+    });
+    assert.equal(response.status, 403);
+    assert.deepEqual(await response.json(), {
+      error: {
+        code: 'CUSTOMER_ONLY',
+        message: 'Administrator accounts cannot place or view customer orders.',
+      },
+    });
+  }
+});
+
 test('an expired session cannot access admin orders', async () => {
   await db.delete(session).where(eq(session.userId, regularUserId));
 

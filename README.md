@@ -192,6 +192,8 @@ After Stripe redirects to `/checkout/success?order_id=...`, the React success pa
 
 Administrators receive a **Manage orders** header link to `/admin/orders`. The page can search by customer name, email or order ID, filter both status types, and move a paid order to confirmed, completed or cancelled. The Express routes enforce the role independently of the React UI and return `403` to authenticated non-admin users.
 
+Administrator accounts cannot create Checkout Sessions or access customer order endpoints. The booking form is hidden for administrators, `/dashboard/orders` redirects them to `/admin/orders`, and the API returns `403 CUSTOMER_ONLY` if an administrator calls `/api/checkout` or `/api/orders` directly.
+
 The gallery and service catalog remain public. `SelectedWork` fetches photos, filters with `.filter()` and renders with `.map()` using stable IDs. It owns favorites state and passes `checked` and `onChange` to each controlled `FavoriteToggle`; updates use a functional state setter. The contact form loads session prices from `/api/services`; signed-in users can create Checkout Sessions, while signed-out users are sent through login and returned to `/#contact`.
 
 Read-only API checks while the server is running:

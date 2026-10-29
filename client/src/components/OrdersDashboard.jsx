@@ -95,6 +95,10 @@ export default function OrdersDashboard() {
     return <Navigate to="/login?returnTo=%2Fdashboard%2Forders" replace />;
   }
 
+  if (session.user.role === 'admin') {
+    return <Navigate to="/admin/orders" replace />;
+  }
+
   const visibleOrders = groupedOrders[activeList];
 
   return (
